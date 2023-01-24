@@ -54,10 +54,24 @@ class Generator {
         
         do {
             let rendered = try environment.renderTemplate(string: template, context: context)
-            
-            let dir = main.currentdirectory + "/" + outputPath + "SecretKeys.swift"
-            let fileURL = URL(fileURLWithPath: dir)
-            
+
+            let dir: String
+            if (outputPath as NSString).isAbsolutePath {
+              dir = outputPath
+            } else {
+              dir = main.currentdirectory + "/" + outputPath
+            }
+
+            let fileURL = URL(fileURLWithPath: dir + "/SecretKeys.swift")
+
+            if !FileManager.default.fileExists(atPath: dir) {
+                do {
+                    try FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true, attributes: nil)
+                } catch {
+                    print(error.localizedDescription);
+                }
+            }
+
             try rendered.write(to: fileURL, atomically: false, encoding: .utf8)
         }
         catch {

@@ -31,6 +31,9 @@ class GenerateCommand: Command {
     
     @Key("-c", "--config", description: "Configuration file path")
     var config: String?
+
+    @Key("-o", "--output", description: "Output file path")
+    var output: String?
     
     @Key("-f", "--factor", description: "Custom cipher factor")
     var factor: Int?
@@ -58,7 +61,6 @@ class GenerateCommand: Command {
         
         let secrets = try Yams.load(yaml: contents) as? [String: Any]
         let keys = try readKeys(from: secrets)
-        let output = secrets?["output"] as? String
         let generator = Generator(values: keys,
                                   outputPath: output ?? "",
                                   customFactor: factor ?? 32)
