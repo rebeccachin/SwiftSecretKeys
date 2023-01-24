@@ -9,14 +9,14 @@ enum GenerateCommandError: ProcessError {
         -1
     }
     
-    case notFoundConfig
+    case notFoundConfig(path: String)
     case invalidConfig
     case invalidEnvironmentVariable(variableName: String)
     
     var message: String? {
         switch self {
-        case .notFoundConfig:
-            return "Error! Create a configuration file (sskeys.yml) or set your custom path (--config)..."
+        case let .notFoundConfig(path):
+            return "Error! Could not find \(path) \nCreate a configuration file (sskeys.yml) or set your custom path (--config)..."
         case .invalidConfig:
             return "Error! File cannot be generated (Verify the environments variables and the output path)..."
         case let .invalidEnvironmentVariable(variableName):
@@ -43,12 +43,17 @@ class GenerateCommand: Command {
         } else {
             config = "sskeys.yml"
         }
-        let path = main.currentdirectory + "/" + config
+        let path: String
+        if (config as NSString).isAbsolutePath {
+          path = config
+        } else {
+          path = main.currentdirectory + "/" + config
+        }
         let contents: String
         do {
             contents = try String(contentsOfFile: path)
         } catch {
-            throw GenerateCommandError.notFoundConfig
+            throw GenerateCommandError.notFoundConfig(path: path)
         }
         
         let secrets = try Yams.load(yaml: contents) as? [String: Any]
